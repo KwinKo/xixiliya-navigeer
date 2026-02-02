@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { config } from './config';
-import { TokenPayload } from './types';
+import { config } from './config.js';
+import { TokenPayload } from './types.js';
 
 // 密码处理
 export const hashPassword = async (password: string): Promise<string> => {

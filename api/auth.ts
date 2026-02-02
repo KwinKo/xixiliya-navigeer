@@ -1,7 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { User, Bookmark, Category } from './_lib/models';
-import { successResponse, errorResponse, errorHandler, validatePassword, generateToken, generateRefreshToken } from './_lib/utils';
-import { corsMiddleware } from './_lib/middlewares';
+import { User, Bookmark, Category } from './_lib/models.js';
+import { successResponse, errorResponse, errorHandler, validatePassword, generateToken, generateRefreshToken } from './_lib/utils.js';
+import { corsMiddleware } from './_lib/middlewares.js';
 
 // 处理CORS
 const handleCors = (req: VercelRequest, res: VercelResponse, next: () => void) => {

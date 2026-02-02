@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { extractTokenFromHeader, verifyToken, errorResponse } from './utils';
-import { User } from './models';
+import { extractTokenFromHeader, verifyToken, errorResponse } from './utils.js';
+import { User } from './models.js';
 
 // 认证中间件
 export const authMiddleware = async (req: VercelRequest, res: VercelResponse, next: () => void) => {

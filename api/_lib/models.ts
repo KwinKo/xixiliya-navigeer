@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import sequelize from './config';
+import sequelize from './config.js';
 import bcrypt from 'bcrypt';
 
 // User model
