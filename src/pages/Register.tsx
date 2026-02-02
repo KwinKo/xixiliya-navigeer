@@ -7,9 +7,9 @@ import { Label } from '@/components/ui/label';
 
 interface RegisterProps {
   t: Translations;
-  onRegister: (username: string, email: string | null, password: string) => { success: boolean; message?: string };
+  onRegister: (username: string, email: string | null, password: string) => Promise<{ success: boolean; message?: string }>;
   onSendCode: (email: string) => Promise<{ sent: boolean; code?: string }>;
-  onVerifyCode: (email: string, code: string) => { success: boolean; message?: string };
+  onVerifyCode: (email: string, code: string) => Promise<{ success: boolean; message?: string }>;
   onShowToast: (type: 'success' | 'error', icon: string, message: string) => void;
 }
 

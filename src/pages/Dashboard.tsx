@@ -38,7 +38,7 @@ interface DashboardProps {
   onAddCategory: (name: string) => void;
   onDeleteCategory: (id: number) => void;
   onExport: () => void;
-  onImport: (data: string) => { success: boolean; error?: string };
+  onImport: (data: string) => Promise<{ success: boolean; error?: string }>;
   onShowToast: (type: 'success' | 'error', icon: string, message: string) => void;
 }
 
@@ -212,8 +212,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = onImport(ev.target?.result as string);
+    reader.onload = async (ev) => {
+      const result = await onImport(ev.target?.result as string);
       if (result.success) {
         onShowToast('success', '✅', t.importSuccess);
       } else {

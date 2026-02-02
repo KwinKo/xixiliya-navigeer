@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 
 interface LoginProps {
   t: Translations;
-  onLogin: (username: string, password: string) => { success: boolean; code?: string };
+  onLogin: (username: string, password: string) => Promise<{ success: boolean; code?: string }>;
   onShowToast: (type: 'success' | 'error', icon: string, message: string) => void;
 }
 

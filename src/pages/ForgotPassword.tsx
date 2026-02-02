@@ -10,7 +10,7 @@ interface ForgotPasswordProps {
   t: Translations;
   users: User[];
   onSendCode: (email: string) => Promise<{ sent: boolean; code?: string }>;
-  onVerifyCode: (email: string, code: string) => { success: boolean; message?: string };
+  onVerifyCode: (email: string, code: string) => Promise<{ success: boolean; message?: string }>;
   onUpdateUser: (user: User) => void;
   onShowToast: (type: 'success' | 'error', icon: string, message: string) => void;
 }
@@ -66,17 +66,16 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({
     }, 1000);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form.email) {
-      onShowToast('error', '❌', t.emailRequired);
+    if (!form.username) {
+      onShowToast('error', '❌', '请输入用户名');
       return;
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      onShowToast('error', '❌', t.invalidEmail);
+    if (!form.email) {
+      onShowToast('error', '❌', t.emailRequired);
       return;
     }
     
@@ -85,7 +84,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       return;
     }
     
-    const verifyResult = onVerifyCode(form.email, form.verificationCode);
+    const verifyResult = await onVerifyCode(form.email, form.verificationCode);
     if (!verifyResult.success) {
       onShowToast('error', '❌', verifyResult.message || t.codeIncorrect);
       return;

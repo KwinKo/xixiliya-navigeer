@@ -176,9 +176,9 @@ class ApiService {
     });
 
     if (response.success && response.data) {
-      // 适配后端响应格式 - 支持平级token字段和嵌套tokens对象
-      const accessToken = response.data.tokens?.accessToken || response.data.token;
-      const refreshToken = response.data.tokens?.refreshToken || response.data.refreshToken;
+      // 适配后端响应格式 - 使用嵌套tokens对象
+      const accessToken = response.data.tokens?.accessToken;
+      const refreshToken = response.data.tokens?.refreshToken;
       
       if (accessToken && refreshToken) {
         this.setTokens(accessToken, refreshToken);
@@ -196,9 +196,9 @@ class ApiService {
     });
 
     if (response.success && response.data) {
-      // 适配后端响应格式 - 支持平级token字段和嵌套tokens对象
-      const accessToken = response.data.tokens?.accessToken || response.data.token;
-      const refreshToken = response.data.tokens?.refreshToken || response.data.refreshToken;
+      // 适配后端响应格式 - 使用嵌套tokens对象
+      const accessToken = response.data.tokens?.accessToken;
+      const refreshToken = response.data.tokens?.refreshToken;
       
       if (accessToken && refreshToken) {
         this.setTokens(accessToken, refreshToken);
