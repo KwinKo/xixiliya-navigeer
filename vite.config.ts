@@ -4,7 +4,6 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
   server: {
     allowedHosts: ['frp-fun.com', 'nodo4:4045'],
     host: true,
