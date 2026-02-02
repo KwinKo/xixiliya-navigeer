@@ -1,7 +1,7 @@
 import type { User, Bookmark, Category } from '@/types';
 
 // API base URL
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
 
 // Response types
 interface ApiResponse<T> {
@@ -176,9 +176,9 @@ class ApiService {
     });
 
     if (response.success && response.data) {
-      // 适配后端响应格式 - 使用嵌套tokens对象
-      const accessToken = response.data.tokens?.accessToken;
-      const refreshToken = response.data.tokens?.refreshToken;
+      // 适配后端响应格式 - 直接使用token和refreshToken字段
+      const accessToken = response.data.token;
+      const refreshToken = response.data.refreshToken;
       
       if (accessToken && refreshToken) {
         this.setTokens(accessToken, refreshToken);
@@ -196,9 +196,9 @@ class ApiService {
     });
 
     if (response.success && response.data) {
-      // 适配后端响应格式 - 使用嵌套tokens对象
-      const accessToken = response.data.tokens?.accessToken;
-      const refreshToken = response.data.tokens?.refreshToken;
+      // 适配后端响应格式 - 直接使用token和refreshToken字段
+      const accessToken = response.data.token;
+      const refreshToken = response.data.refreshToken;
       
       if (accessToken && refreshToken) {
         this.setTokens(accessToken, refreshToken);
