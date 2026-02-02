@@ -34,13 +34,13 @@ export const validatePassword = (password: string): { valid: boolean; message?: 
 // JWT令牌处理
 export const generateToken = (payload: TokenPayload): string => {
   return jwt.sign(payload, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn,
+    expiresIn: config.jwtExpiresIn as any,
   });
 };
 
 export const generateRefreshToken = (payload: TokenPayload): string => {
   return jwt.sign(payload, config.jwtSecret, {
-    expiresIn: config.jwtRefreshExpiresIn,
+    expiresIn: config.jwtRefreshExpiresIn as any,
   });
 };
 
