@@ -1,7 +1,9 @@
 import type { User, Bookmark, Category } from '@/types';
 
 // API base URL
-const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api';
+// 检测是否在本地开发环境
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocalDev ? 'http://localhost:3001/api' : '/api';
 
 // Response types
 interface ApiResponse<T> {
