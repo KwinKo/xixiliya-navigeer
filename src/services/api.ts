@@ -17,10 +17,8 @@ interface AuthResponse {
     username: string;
     email: string;
   };
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
+  token: string;
+  refreshToken: string;
 }
 
 // Storage keys
