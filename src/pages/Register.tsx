@@ -7,9 +7,9 @@ import { Label } from '@/components/ui/label';
 
 interface RegisterProps {
   t: Translations;
-  onRegister: (username: string, email: string | null, password: string) => { success: boolean; message?: string };
+  onRegister: (username: string, email: string | null, password: string) => Promise<{ success: boolean; message?: string }>;
   onSendCode: (email: string) => Promise<{ sent: boolean; code?: string }>;
-  onVerifyCode: (email: string, code: string) => { success: boolean; message?: string };
+  onVerifyCode: (email: string, code: string) => Promise<{ success: boolean; message?: string }>;
   onShowToast: (type: 'success' | 'error', icon: string, message: string) => void;
 }
 
@@ -94,7 +94,7 @@ const Register: React.FC<RegisterProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen flex items-center justify-center py-12 bg-transparent">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all hover:shadow-2xl">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
