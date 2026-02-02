@@ -1,8 +1,5 @@
 # Navigeer - 个人书签导航系统
 
-<p align="center">
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20bookmark%20navigation%20app%20interface%20with%20gradient%20background%20and%20glass%20cards&image_size=landscape_16_9" alt="Navigeer 界面展示" width="800">
-</p>
 
 ## 项目介绍
 
