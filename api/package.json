@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Navigeer bookmark manager API",
   "type": "module",
+  "scripts": {
+    "build:frontend": "tsc -b && vite build"
+  },
   "dependencies": {
     "pg": "^8.18.0",
     "sequelize": "^6.37.7",
