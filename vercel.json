@@ -8,7 +8,7 @@
   ],
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node@1.0.0"
+      "runtime": "@vercel/node"
     }
   },
   "headers": [
