@@ -40,10 +40,27 @@ NODE_ENV="production"
 
 ### 2. 确保数据库表结构同步
 
-由于 Serverless 函数每次请求都是独立的，需要确保数据库表已存在。可以考虑以下方法：
+由于 Serverless 函数每次请求都是独立的，需要确保数据库表已存在。**这是导致 'relation does not exist' 错误的主要原因**。
 
-#### 方法一：在函数启动时同步（不推荐用于生产）
-在 `_lib/models.ts` 中添加表同步逻辑（仅用于开发）
+#### 方法一：使用数据库初始化脚本（推荐）
+项目中包含 `db-init.ts` 脚本，用于在数据库中创建必要的表结构：
+
+```bash
+# 安装依赖
+npm install
+
+# 运行数据库初始化
+npm run db:init
+```
+
+**重要提示：** 在部署到 Vercel 之前，必须先在 Neon 数据库中运行此脚本创建表结构。
+
+您还可以使用健康检查脚本来验证数据库连接：
+
+```bash
+# 运行数据库健康检查
+npm run db:health-check
+```
 
 #### 方法二：使用 Vercel 部署钩子
 在部署后运行数据库同步脚本
@@ -129,9 +146,20 @@ const sequelize = new Sequelize(getDatabaseUrl(), {
      - Build Command: `npm run build` 
      - Output Directory: `dist` (如果前端构建需要)
 
-3. **数据库初始化**
-   - 首次部署后，可能需要手动在 Neon 中运行数据库迁移
-   - 或者使用 Prisma/Sequelize 的迁移功能
+3. **数据库初始化（关键步骤）**
+   - **重要：** 在部署到 Vercel 之前，必须先初始化数据库表结构
+   - 在本地运行数据库初始化脚本：
+     ```bash
+     # 确保安装了依赖
+     npm install
+
+     # 运行数据库初始化
+     npx tsx db-init.ts
+     ```
+   - 或者在生产环境中运行（使用生产环境变量）：
+     ```bash
+     DATABASE_URL="your-neon-db-url" npx tsx db-init.ts
+     ```
 
 4. **测试阶段**
    - 部署完成后测试注册/登录功能
@@ -168,6 +196,13 @@ const sequelize = new Sequelize(getDatabaseUrl(), {
 - 使用 `safeDbOperation` 包装所有数据库查询
 - 检查登录和注册 API 的错误处理逻辑
 
+### 8. 表不存在错误 (relation "users" does not exist)
+- 这是最常见的部署问题，表示数据库表未创建
+- 在部署前运行 `npm run db:init` 创建表结构
+- 使用 `npm run db:health-check` 验证表是否存在
+- 确认数据库连接 URL 中的数据库名称正确
+- 确认数据库用户有创建表的权限
+
 ## 性能优化建议
 
 1. **数据库连接优化**
@@ -198,3 +233,6 @@ const sequelize = new Sequelize(getDatabaseUrl(), {
 - [ ] 未处理的拒绝错误已修复
 - [ ] 所有 API routes 有适当的错误处理
 - [ ] 数据库操作使用安全包装器
+- [ ] 数据库表结构已初始化
+- [ ] 运行 `npm run db:health-check` 验证数据库连接
+- [ ] 表 'users', 'bookmarks', 'categories' 存在
