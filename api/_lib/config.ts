@@ -1,21 +1,36 @@
 import { Sequelize } from 'sequelize';
 import pg from 'pg';
 
+// 确保 DATABASE_URL 包含正确的 SSL 模式
+const getDatabaseUrl = () => {
+  const dbUrl = process.env.DATABASE_URL || '';
+  if (!dbUrl) return dbUrl;
+  
+  // 检查 URL 是否已包含 sslmode 参数
+  const hasSslMode = dbUrl.includes('sslmode=') || dbUrl.includes('ssl-mode=');
+  if (!hasSslMode) {
+    // 如果没有 sslmode 参数，添加 verify-full（更安全的选项）
+    return `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}sslmode=verify-full`;
+  }
+  
+  return dbUrl;
+};
+
 // 数据库配置 - 优化用于 Vercel 和 Neon
-const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
+const sequelize = new Sequelize(getDatabaseUrl(), {
   dialect: 'postgres',
   dialectModule: pg,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
     max: 1, // Serverless 环境优化：减少连接池大小
     min: 0,
-    acquire: 30000,
-    idle: 10000
+    acquire: 60000, // 增加获取连接的超时时间
+    idle: 60000    // 增加空闲连接的超时时间
   },
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false // Neon 数据库必需设置
+      rejectUnauthorized: true // 更安全的设置
     }
   }
 });
