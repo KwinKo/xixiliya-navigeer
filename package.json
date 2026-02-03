@@ -15,7 +15,9 @@
     "install:all": "npm install && cd backend && npm install",
     "lint": "npm run lint:frontend",
     "lint:frontend": "eslint .",
-    "lint:backend": "cd backend && npm run lint"
+    "lint:backend": "cd backend && npm run lint",
+    "vercel:build": "npm run build",
+    "vercel:post-deploy": "node dist/scripts/vercel-deploy-hook.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
