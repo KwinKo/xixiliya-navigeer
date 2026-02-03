@@ -3,68 +3,88 @@ import { User } from '../_lib/models.js';
 import { successResponse, errorResponse, errorHandler, validatePassword, generateToken, generateRefreshToken } from '../_lib/utils.js';
 import { corsMiddleware } from '../_lib/middlewares.js';
 
-// 处理CORS
-const handleCors = (req: VercelRequest, res: VercelResponse, next: () => void) => {
-  corsMiddleware(req, res, next);
+// 安全的数据库操作包装器
+const withDatabaseOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error('Database operation failed:', error);
+    throw error;
+  }
 };
 
 // 注册用户
 export default async (req: VercelRequest, res: VercelResponse) => {
+  // 先处理CORS
   try {
-    handleCors(req, res, async () => {
-      if (req.method !== 'POST') {
-        return errorResponse(res, 'Method not allowed', 405);
-      }
+    corsMiddleware(req, res, () => {});
+  } catch (corsError) {
+    console.error('CORS middleware error:', corsError);
+    return res.status(500).json({
+      success: false,
+      message: 'CORS setup failed',
+    });
+  }
 
-      const { username, email, password } = req.body;
+  try {
+    if (req.method !== 'POST') {
+      return errorResponse(res, 'Method not allowed', 405);
+    }
 
-      // 验证密码
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation.valid) {
-        return errorResponse(res, passwordValidation.message, 400);
-      }
+    const { username, email, password } = req.body;
 
-      // 检查用户名是否存在
-      const existingUser = await User.findOne({
+    // 验证密码
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return errorResponse(res, passwordValidation.message, 400);
+    }
+
+    // 检查用户名是否存在
+    const existingUser = await withDatabaseOperation(async () => {
+      return await User.findOne({
         where: { username },
       });
+    });
 
-      if (existingUser) {
-        return errorResponse(res, 'Username already exists', 400);
-      }
+    if (existingUser) {
+      return errorResponse(res, 'Username already exists', 400);
+    }
 
-      // 检查邮箱是否存在
-      const existingEmail = await User.findOne({
+    // 检查邮箱是否存在
+    const existingEmail = await withDatabaseOperation(async () => {
+      return await User.findOne({
         where: { email },
       });
+    });
 
-      if (existingEmail) {
-        return errorResponse(res, 'Email already registered', 400);
-      }
+    if (existingEmail) {
+      return errorResponse(res, 'Email already registered', 400);
+    }
 
-      // 创建用户
-      const user = await User.create({
+    // 创建用户
+    const user = await withDatabaseOperation(async () => {
+      return await User.create({
         username,
         email,
         password,
       });
-
-      // 生成令牌
-      const tokenPayload = {
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-      };
-
-      const token = generateToken(tokenPayload);
-      const refreshToken = generateRefreshToken(tokenPayload);
-
-      return successResponse(res, 'Registration successful', {
-        user: user.toJSON(),
-        token,
-        refreshToken
-      }, 201);
     });
+
+    // 生成令牌
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    const token = generateToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
+
+    return successResponse(res, 'Registration successful', {
+      user: user.toJSON(),
+      token,
+      refreshToken
+    }, 201);
   } catch (error) {
     errorHandler(error, res);
   }
