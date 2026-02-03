@@ -13,6 +13,7 @@
 - Serverless 环境下的数据库连接池管理
 - 环境变量配置不正确
 - SSL 连接设置
+- 未处理的拒绝错误
 
 ### 3. API 路径映射
 - 前端 API 调用路径与 Vercel 函数路径不匹配
@@ -24,8 +25,8 @@
 在 Vercel 项目设置中添加以下环境变量：
 
 ```bash
-# Neon 数据库连接字符串
-DATABASE_URL="postgresql://[username]:[password]@[region].aws.neon.tech/navigeer?sslmode=require"
+# Neon 数据库连接字符串 (确保使用 sslmode=verify-full 以获得更强的安全性)
+DATABASE_URL="postgresql://[username]:[password]@[region].aws.neon.tech/navigeer?sslmode=verify-full"
 
 # JWT 密钥（请使用强密钥）
 JWT_SECRET="your-very-secure-jwt-secret-key-change-this-in-production"
@@ -47,29 +48,52 @@ NODE_ENV="production"
 #### 方法二：使用 Vercel 部署钩子
 在部署后运行数据库同步脚本
 
-### 3. 优化数据库连接
+### 3. 优化数据库连接 (已更新)
 
-在 `api/_lib/config.ts` 中优化连接池设置：
+项目已更新 `api/_lib/config.ts` 以优化 Serverless 环境下的数据库连接：
 
 ```typescript
-const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
+// 确保 DATABASE_URL 包含正确的 SSL 模式
+const getDatabaseUrl = () => {
+  const dbUrl = process.env.DATABASE_URL || '';
+  if (!dbUrl) return dbUrl;
+  
+  // 检查 URL 是否已包含 sslmode 参数
+  const hasSslMode = dbUrl.includes('sslmode=') || dbUrl.includes('ssl-mode=');
+  if (!hasSslMode) {
+    // 如果没有 sslmode 参数，添加 verify-full（更安全的选项）
+    return `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}sslmode=verify-full`;
+  }
+  
+  return dbUrl;
+};
+
+const sequelize = new Sequelize(getDatabaseUrl(), {
   dialect: 'postgres',
   dialectModule: pg,
-  logging: false, // 生产环境关闭日志
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
-    max: 1, // Serverless 环境建议设置为 1
+    max: 1, // Serverless 环境优化：减少连接池大小
     min: 0,
-    acquire: 30000,
-    idle: 10000
+    acquire: 60000, // 增加获取连接的超时时间
+    idle: 60000    // 增加空闲连接的超时时间
   },
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false // Neon 需要此设置
+      rejectUnauthorized: true // 更安全的设置
     }
   }
 });
 ```
+
+### 4. 修复未处理的拒绝错误 (已更新)
+
+项目已更新 `api/auth/login.ts` 和 `api/auth/register.ts` 以修复未处理的拒绝错误：
+
+- 使用 `safeDbOperation` 包装数据库操作
+- 改进错误处理机制
+- 添加重试逻辑
 
 ### 4. Vercel 配置优化
 
@@ -86,8 +110,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
   ],
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node@1.0.0",
-      "maxDuration": 60
+      "runtime": "@vercel/node@5.5.28"
     }
   }
 }
@@ -132,11 +155,24 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
 - 确认 `vercel.json` 重写规则
 - 检查函数文件命名和路径
 
+### 5. 部署错误
+- 检查 Runtime 版本是否正确（@vercel/node@5.5.28）
+- 确认函数模式匹配正确
+
+### 6. SSL 模式警告
+- 确保 `DATABASE_URL` 包含 `sslmode=verify-full`
+- 使用更安全的 `rejectUnauthorized: true` 设置
+
+### 7. 未处理的拒绝错误
+- 确认数据库操作被适当的错误处理包装
+- 使用 `safeDbOperation` 包装所有数据库查询
+- 检查登录和注册 API 的错误处理逻辑
+
 ## 性能优化建议
 
 1. **数据库连接优化**
    - 使用连接池管理
-   - 考虑使用数据库连接代理
+   - 在 Serverless 环境中使用较小的连接池（max: 1）
 
 2. **缓存策略**
    - 对于频繁读取的数据使用缓存
@@ -148,7 +184,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
 
 ## 部署验证清单
 
-- [ ] 数据库连接字符串正确配置
+- [ ] 数据库连接字符串正确配置（包含 sslmode=verify-full）
 - [ ] JWT 密钥设置正确
 - [ ] CORS 配置正确
 - [ ] API 路由重写正常
@@ -156,3 +192,9 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
 - [ ] 用户登录功能正常
 - [ ] 数据库读写正常
 - [ ] 前端与后端通信正常
+- [ ] Neon SSL 连接设置正确
+- [ ] Serverless 函数运行时版本正确
+- [ ] 数据库连接池大小优化
+- [ ] 未处理的拒绝错误已修复
+- [ ] 所有 API routes 有适当的错误处理
+- [ ] 数据库操作使用安全包装器
