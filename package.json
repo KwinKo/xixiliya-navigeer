@@ -17,10 +17,11 @@
     "lint:frontend": "eslint .",
     "lint:backend": "cd backend && npm run lint",
     "vercel:build": "npm run build",
-    "vercel:post-deploy": "node dist/scripts/vercel-deploy-hook.js",
+    "vercel:post-deploy": "node --loader ts-node/esm dist/scripts/vercel-deploy-hook.js",
     "db:init": "tsx db-init.ts",
     "db:init:prod": "NODE_ENV=production tsx db-init.ts",
-    "db:health-check": "tsx db-health-check.ts"
+    "db:health-check": "tsx db-health-check.ts",
+    "db:vercel-init": "tsx scripts/vercel-deploy-hook.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
