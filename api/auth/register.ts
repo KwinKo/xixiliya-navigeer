@@ -2,16 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { User } from '../_lib/models.js';
 import { successResponse, errorResponse, errorHandler, validatePassword, generateToken, generateRefreshToken } from '../_lib/utils.js';
 import { corsMiddleware } from '../_lib/middlewares.js';
-
-// 安全的数据库操作包装器
-const withDatabaseOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Database operation failed:', error);
-    throw error;
-  }
-};
+import { safeDbOperation } from '../_lib/db-manager.js';
 
 // 注册用户
 export default async (req: VercelRequest, res: VercelResponse) => {
@@ -40,7 +31,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
 
     // 检查用户名是否存在
-    const existingUser = await withDatabaseOperation(async () => {
+    const existingUser = await safeDbOperation(async () => {
       return await User.findOne({
         where: { username },
       });
@@ -51,7 +42,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
 
     // 检查邮箱是否存在
-    const existingEmail = await withDatabaseOperation(async () => {
+    const existingEmail = await safeDbOperation(async () => {
       return await User.findOne({
         where: { email },
       });
@@ -62,7 +53,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
 
     // 创建用户
-    const user = await withDatabaseOperation(async () => {
+    const user = await safeDbOperation(async () => {
       return await User.create({
         username,
         email,
@@ -86,6 +77,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       refreshToken
     }, 201);
   } catch (error) {
+    console.error('Registration error:', error);
     errorHandler(error, res);
   }
 };

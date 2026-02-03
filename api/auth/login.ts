@@ -2,16 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { User } from '../_lib/models.js';
 import { successResponse, errorResponse, errorHandler, generateToken, generateRefreshToken } from '../_lib/utils.js';
 import { corsMiddleware } from '../_lib/middlewares.js';
-
-// 安全的数据库操作包装器
-const withDatabaseOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Database operation failed:', error);
-    throw error;
-  }
-};
+import { safeDbOperation } from '../_lib/db-manager.js';
 
 // 登录用户
 export default async (req: VercelRequest, res: VercelResponse) => {
@@ -38,8 +29,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       return errorResponse(res, 'Username and password are required', 400);
     }
 
-    // 查找用户 - 包装在数据库操作中
-    const user = await withDatabaseOperation(async () => {
+    // 查找用户 - 使用增强型数据库操作包装器
+    const user = await safeDbOperation(async () => {
       return await User.findOne({
         where: { username },
       });
