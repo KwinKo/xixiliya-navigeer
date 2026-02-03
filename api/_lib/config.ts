@@ -1,8 +1,10 @@
 import { Sequelize } from 'sequelize';
+import pg from 'pg';
 
 // 数据库配置
 const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
   dialect: 'postgres',
+  dialectModule: pg,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
     max: 5,
