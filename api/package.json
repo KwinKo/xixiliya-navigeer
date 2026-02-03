@@ -1,19 +1,53 @@
 {
-  "name": "navigeer-api",
+  "name": "navigeer-backend",
   "version": "1.0.0",
-  "description": "Navigeer bookmark manager API",
-  "type": "module",
+  "description": "Navigeer bookmark manager backend API",
+  "type": "commonjs",
+  "main": "server.js",
   "scripts": {
-    "build:frontend": "tsc -b && vite build"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:prod": "node dist/server.js",
+    "db:seed": "tsx src/seed.ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "pg": "^8.18.0",
-    "sequelize": "^6.37.7",
-    "bcrypt": "^6.0.0",
-    "jsonwebtoken": "^9.0.3",
-    "express": "^4.19.2",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "@vercel/node": "^5.5.28"
-  }
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.1",
+    "pg": "^8.18.0",
+    "sequelize": "^6.35.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.14.10",
+    "@types/sequelize": "^4.28.20",
+    "@typescript-eslint/eslint-plugin": "^8.1.0",
+    "@typescript-eslint/parser": "^8.1.0",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  },
+  "keywords": [
+    "bookmark",
+    "manager",
+    "express",
+    "typescript",
+    "sequelize",
+    "mysql"
+  ],
+  "author": "Navigeer Team",
+  "license": "MIT"
 }

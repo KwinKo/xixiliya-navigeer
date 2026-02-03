@@ -15,13 +15,7 @@
     "install:all": "npm install && cd backend && npm install",
     "lint": "npm run lint:frontend",
     "lint:frontend": "eslint .",
-    "lint:backend": "cd backend && npm run lint",
-    "vercel:build": "npm run build",
-    "vercel:post-deploy": "node --loader ts-node/esm dist/scripts/vercel-deploy-hook.js",
-    "db:init": "tsx db-init.ts",
-    "db:init:prod": "NODE_ENV=production tsx db-init.ts",
-    "db:health-check": "tsx db-health-check.ts",
-    "db:vercel-init": "tsx scripts/vercel-deploy-hook.ts"
+    "lint:backend": "cd backend && npm run lint"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
@@ -101,7 +95,6 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
-    "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
