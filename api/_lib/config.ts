@@ -1,16 +1,22 @@
 import { Sequelize } from 'sequelize';
 import pg from 'pg';
 
-// 数据库配置
+// 数据库配置 - 优化用于 Vercel 和 Neon
 const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
   dialect: 'postgres',
   dialectModule: pg,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
-    max: 5,
+    max: 1, // Serverless 环境优化：减少连接池大小
     min: 0,
     acquire: 30000,
     idle: 10000
+  },
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false // Neon 数据库必需设置
+    }
   }
 });
 
@@ -21,6 +27,10 @@ const testConnection = async () => {
     console.log('Database connection established successfully');
   } catch (error) {
     console.error('Database connection failed:', error);
+    // 在生产环境中，不抛出错误以避免影响其他功能
+    if (process.env.NODE_ENV === 'development') {
+      throw error;
+    }
   }
 };
 
