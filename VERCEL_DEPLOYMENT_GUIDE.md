@@ -104,13 +104,16 @@ const sequelize = new Sequelize(getDatabaseUrl(), {
 });
 ```
 
-### 4. 修复未处理的拒绝错误 (已更新)
+### 4. 修复未处理的拒绝错误和表不存在错误 (已更新)
 
-项目已更新 `api/auth/login.ts` 和 `api/auth/register.ts` 以修复未处理的拒绝错误：
+项目已全面更新所有 API 函数以修复未处理的拒绝错误和表不存在错误：
 
-- 使用 `safeDbOperation` 包装数据库操作
+- 更新了 `api/_lib/db-manager.ts` 以包含自动表检测和创建功能
+- 使用 `safeDbOperation` 包装所有数据库操作
 - 改进错误处理机制
 - 添加重试逻辑
+- 所有 API 函数（`api/auth/login.ts`, `api/auth/register.ts`, `api/users.ts`, `api/bookmarks.ts`, `api/categories.ts`）均已更新
+- 在 Vercel 部署环境中，即使表不存在也能自动创建
 
 ### 4. Vercel 配置优化
 
@@ -148,18 +151,24 @@ const sequelize = new Sequelize(getDatabaseUrl(), {
 
 3. **数据库初始化（关键步骤）**
    - **重要：** 在部署到 Vercel 之前，必须先初始化数据库表结构
-   - 在本地运行数据库初始化脚本：
+   - **方法一：** 在本地运行数据库初始化脚本：
      ```bash
      # 确保安装了依赖
      npm install
 
      # 运行数据库初始化
-     npx tsx db-init.ts
+     npm run db:init
+     ```
+   - **方法二：** 使用 Vercel 部署后的钩子脚本（推荐用于生产环境）：
+     ```bash
+     npm run db:vercel-init
      ```
    - 或者在生产环境中运行（使用生产环境变量）：
      ```bash
-     DATABASE_URL="your-neon-db-url" npx tsx db-init.ts
+     DATABASE_URL="your-neon-db-url" npm run db:init
      ```
+
+   **注意：** 对于 Vercel 部署，我们的增强型数据库管理器具有自动表检测和创建功能，即使表不存在也能自动创建。
 
 4. **测试阶段**
    - 部署完成后测试注册/登录功能
