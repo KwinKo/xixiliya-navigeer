@@ -9,9 +9,6 @@
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@1.0.0"
-    },
-    "api/auth/*.ts": {
-      "maxDuration": 60
     }
   },
   "headers": [
