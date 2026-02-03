@@ -2,6 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Category, User } from './_lib/models.js';
 import { successResponse, errorResponse, errorHandler } from './_lib/utils.js';
 import { corsMiddleware, authMiddleware } from './_lib/middlewares.js';
+import { safeDbOperation } from './_lib/db-manager.js';
 
 // 处理CORS
 const handleCors = (req: VercelRequest, res: VercelResponse, next: () => void) => {
@@ -25,9 +26,11 @@ export const getCategories = async (req: VercelRequest, res: VercelResponse) => 
         const userId = (req as any).userId;
 
         // 获取分类
-        const categories = await Category.findAll({
-          where: { userId },
-          order: [['createdAt', 'ASC']],
+        const categories = await safeDbOperation(async () => {
+          return await Category.findAll({
+            where: { userId },
+            order: [['createdAt', 'ASC']],
+          });
         });
 
         return successResponse(res, 'Categories retrieved successfully', categories);
@@ -52,11 +55,13 @@ export const createCategory = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 检查分类名是否已存在
-        const existingCategory = await Category.findOne({
-          where: {
-            userId,
-            name: name.trim(),
-          },
+        const existingCategory = await safeDbOperation(async () => {
+          return await Category.findOne({
+            where: {
+              userId,
+              name: name.trim(),
+            },
+          });
         });
 
         if (existingCategory) {
@@ -64,9 +69,11 @@ export const createCategory = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 创建分类
-        const category = await Category.create({
-          userId,
-          name: name.trim(),
+        const category = await safeDbOperation(async () => {
+          return await Category.create({
+            userId,
+            name: name.trim(),
+          });
         });
 
         return successResponse(res, 'Category created successfully', category, 201);
@@ -90,11 +97,13 @@ export const deleteCategory = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 查找分类
-        const category = await Category.findOne({
-          where: {
-            id: parseInt(id as string),
-            userId,
-          },
+        const category = await safeDbOperation(async () => {
+          return await Category.findOne({
+            where: {
+              id: parseInt(id as string),
+              userId,
+            },
+          });
         });
 
         if (!category) {
@@ -102,7 +111,9 @@ export const deleteCategory = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 删除分类
-        await category.destroy();
+        await safeDbOperation(async () => {
+          await category.destroy();
+        });
 
         return successResponse(res, 'Category deleted successfully');
       });
@@ -123,8 +134,10 @@ export const getPublicCategories = async (req: VercelRequest, res: VercelRespons
       }
 
       // 查找用户
-      const user = await User.findOne({
-        where: { username: String(username) },
+      const user = await safeDbOperation(async () => {
+        return await User.findOne({
+          where: { username: String(username) },
+        });
       });
 
       if (!user) {
@@ -136,9 +149,11 @@ export const getPublicCategories = async (req: VercelRequest, res: VercelRespons
       }
 
       // 获取分类
-      const categories = await Category.findAll({
-        where: { userId: user.id },
-        order: [['createdAt', 'ASC']],
+      const categories = await safeDbOperation(async () => {
+        return await Category.findAll({
+          where: { userId: user.id },
+          order: [['createdAt', 'ASC']],
+        });
       });
 
       return successResponse(res, 'Public categories retrieved successfully', categories);

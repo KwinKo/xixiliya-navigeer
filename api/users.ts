@@ -2,16 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { User } from './_lib/models.js';
 import { successResponse, errorResponse, errorHandler } from './_lib/utils.js';
 import { corsMiddleware, authMiddleware } from './_lib/middlewares.js';
-
-// 安全的数据库操作包装器
-const withDatabaseOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Database operation failed:', error);
-    throw error;
-  }
-};
+import { safeDbOperation } from './_lib/db-manager.js';
 
 // 获取当前用户信息
 export const getCurrentUser = async (req: VercelRequest, res: VercelResponse) => {
@@ -62,7 +53,7 @@ export const updateCurrentUser = async (req: VercelRequest, res: VercelResponse)
         const updateData = req.body;
 
         // 查找用户
-        const user = await withDatabaseOperation(async () => {
+        const user = await safeDbOperation(async () => {
           return await User.findByPk(userId);
         });
 
@@ -71,7 +62,7 @@ export const updateCurrentUser = async (req: VercelRequest, res: VercelResponse)
         }
 
         // 更新用户信息
-        await withDatabaseOperation(async () => {
+        await safeDbOperation(async () => {
           await user.update(updateData);
         });
 
@@ -108,7 +99,7 @@ export const getUserByUsername = async (req: VercelRequest, res: VercelResponse)
     }
 
     // 查找用户
-    const user = await withDatabaseOperation(async () => {
+    const user = await safeDbOperation(async () => {
       return await User.findOne({
         where: { username: String(username) },
       });
@@ -154,7 +145,7 @@ export const deleteCurrentUser = async (req: VercelRequest, res: VercelResponse)
         const userId = (req as any).userId;
 
         // 查找用户
-        const user = await withDatabaseOperation(async () => {
+        const user = await safeDbOperation(async () => {
           return await User.findByPk(userId);
         });
 
@@ -163,7 +154,7 @@ export const deleteCurrentUser = async (req: VercelRequest, res: VercelResponse)
         }
 
         // 删除用户
-        await withDatabaseOperation(async () => {
+        await safeDbOperation(async () => {
           await user.destroy();
         });
 

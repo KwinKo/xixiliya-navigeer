@@ -2,16 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Bookmark, Category, User } from './_lib/models.js';
 import { successResponse, errorResponse, errorHandler, validateUrl } from './_lib/utils.js';
 import { corsMiddleware, authMiddleware } from './_lib/middlewares.js';
-
-// 安全的数据库操作包装器
-const withDatabaseOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Database operation failed:', error);
-    throw error;
-  }
-};
+import { safeDbOperation } from './_lib/db-manager.js';
 
 // 获取用户书签
 export const getBookmarks = async (req: VercelRequest, res: VercelResponse) => {
@@ -32,7 +23,7 @@ export const getBookmarks = async (req: VercelRequest, res: VercelResponse) => {
         const userId = (req as any).userId;
 
         // 获取书签（包含分类信息）
-        const bookmarks = await withDatabaseOperation(async () => {
+        const bookmarks = await safeDbOperation(async () => {
           return await Bookmark.findAll({
             where: { userId },
             include: [{
@@ -89,13 +80,13 @@ export const createBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 检查书签限制
-        const bookmarkCount = await withDatabaseOperation(async () => {
+        const bookmarkCount = await safeDbOperation(async () => {
           return await Bookmark.count({
             where: { userId },
           });
         });
 
-        const user = await withDatabaseOperation(async () => {
+        const user = await safeDbOperation(async () => {
           return await User.findByPk(userId);
         });
 
@@ -105,7 +96,7 @@ export const createBookmark = async (req: VercelRequest, res: VercelResponse) =>
 
         // 检查分类是否存在
         if (categoryId) {
-          const category = await withDatabaseOperation(async () => {
+          const category = await safeDbOperation(async () => {
             return await Category.findOne({
               where: {
                 id: categoryId,
@@ -120,7 +111,7 @@ export const createBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 创建书签
-        const bookmark = await withDatabaseOperation(async () => {
+        const bookmark = await safeDbOperation(async () => {
           return await Bookmark.create({
             userId,
             title: title.trim(),
@@ -133,7 +124,7 @@ export const createBookmark = async (req: VercelRequest, res: VercelResponse) =>
         });
 
         // 加载分类信息
-        const createdBookmark = await withDatabaseOperation(async () => {
+        const createdBookmark = await safeDbOperation(async () => {
           return await Bookmark.findByPk(bookmark.id, {
             include: [{
               model: Category,
@@ -178,7 +169,7 @@ export const getBookmarkById = async (req: VercelRequest, res: VercelResponse) =
         }
 
         // 查找书签
-        const bookmark = await withDatabaseOperation(async () => {
+        const bookmark = await safeDbOperation(async () => {
           return await Bookmark.findOne({
             where: {
               id: parseInt(id as string),
@@ -232,7 +223,7 @@ export const updateBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 查找书签
-        const bookmark = await withDatabaseOperation(async () => {
+        const bookmark = await safeDbOperation(async () => {
           return await Bookmark.findOne({
             where: {
               id: parseInt(id as string),
@@ -260,7 +251,7 @@ export const updateBookmark = async (req: VercelRequest, res: VercelResponse) =>
 
         // 检查分类是否存在
         if (categoryId) {
-          const category = await withDatabaseOperation(async () => {
+          const category = await safeDbOperation(async () => {
             return await Category.findOne({
               where: {
                 id: categoryId,
@@ -275,7 +266,7 @@ export const updateBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 更新书签
-        await withDatabaseOperation(async () => {
+        await safeDbOperation(async () => {
           await bookmark.update({
             title: title?.trim(),
             url: url?.trim(),
@@ -287,7 +278,7 @@ export const updateBookmark = async (req: VercelRequest, res: VercelResponse) =>
         });
 
         // 加载分类信息
-        const updatedBookmark = await withDatabaseOperation(async () => {
+        const updatedBookmark = await safeDbOperation(async () => {
           return await Bookmark.findByPk(bookmark.id, {
             include: [{
               model: Category,
@@ -332,7 +323,7 @@ export const deleteBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 查找书签
-        const bookmark = await withDatabaseOperation(async () => {
+        const bookmark = await safeDbOperation(async () => {
           return await Bookmark.findOne({
             where: {
               id: parseInt(id as string),
@@ -346,7 +337,7 @@ export const deleteBookmark = async (req: VercelRequest, res: VercelResponse) =>
         }
 
         // 删除书签
-        await withDatabaseOperation(async () => {
+        await safeDbOperation(async () => {
           await bookmark.destroy();
         });
 
@@ -383,7 +374,7 @@ export const getPublicBookmarks = async (req: VercelRequest, res: VercelResponse
     }
 
     // 查找用户
-    const user = await withDatabaseOperation(async () => {
+    const user = await safeDbOperation(async () => {
       return await User.findOne({
         where: { username: String(username) },
       });
@@ -398,7 +389,7 @@ export const getPublicBookmarks = async (req: VercelRequest, res: VercelResponse
     }
 
     // 获取公开书签
-    const bookmarks = await withDatabaseOperation(async () => {
+    const bookmarks = await safeDbOperation(async () => {
       return await Bookmark.findAll({
         where: {
           userId: user.id,
